@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>PLC 控制面板</title>
+<style>
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+
+  h2 {
+    color: #2c3e50;
+    border-left: 5px solid #3498db;
+    padding-left: 10px;
+    margin-top: 30px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    background: #fff;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  span {
+    font-weight: bold;
+    margin: 0 15px;
+    min-width: 40px;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .status-on {
+    color: #27ae60;
+  }
+
+  .status-off {
+    color: #e74c3c;
+  }
+
+  button {
+    border: none;
+    padding: 8px 16px;
+    margin-left: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    opacity: 0.8;
+  }
+
+  .btn-on {
+    background: #27ae60;
+    color: #fff;
+  }
+
+  .btn-off {
+    background: #e74c3c;
+    color: #fff;
+  }
+</style>
+<script>
+async function loadStatus() {
+  try {
+    const res = await fetch("status.php", { cache: "no-store" });
+    const data = await res.json();
+
+    for (let i = 1; i <= 4; i++) {
+      const inEl = document.getElementById("in" + i);
+      const outEl = document.getElementById("out" + i);
+
+      inEl.innerText = data["input" + i] == 1 ? "ON" : "OFF";
+      inEl.className = data["input" + i] == 1 ? "status-on" : "status-off";
+
+      outEl.innerText = data["output" + i] == 1 ? "ON" : "OFF";
+      outEl.className = data["output" + i] == 1 ? "status-on" : "status-off";
+    }
+  } catch (e) {
+    console.error("讀取失敗", e);
+  }
+}
+
+// 即時輪詢（300ms）
+setInterval(loadStatus, 300);
+
+async function setOutput(ch, val) {
+  await fetch("set_output.php", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ channel: ch, value: val })
+  });
+
+  // 立刻刷新畫面
+  loadStatus();
+}
+</script>
+</head>
+<body onload="loadStatus()">
+
+<h1>🔧 PLC 控制面板</h1>
+
+<h2>PLC Input</h2>
+<ul>
+  <li>Input1: <span id="in1"></span></li>
+  <li>Input2: <span id="in2"></span></li>
+  <li>Input3: <span id="in3"></span></li>
+  <li>Input4: <span id="in4"></span></li>
+</ul>
+
+<h2>PLC Output</h2>
+<ul>
+  <li>
+    Output1: <span id="out1"></span>
+    <button class="btn-on" onclick="setOutput(1,1)">ON</button>
+    <button class="btn-off" onclick="setOutput(1,0)">OFF</button>
+  </li>
+  <li>
+    Output2: <span id="out2"></span>
+    <button class="btn-on" onclick="setOutput(2,1)">ON</button>
+    <button class="btn-off" onclick="setOutput(2,0)">OFF</button>
+  </li>
+  <li>
+    Output3: <span id="out3"></span>
+    <button class="btn-on" onclick="setOutput(3,1)">ON</button>
+    <button class="btn-off" onclick="setOutput(3,0)">OFF</button>
+  </li>
+  <li>
+    Output4: <span id="out4"></span>
+    <button class="btn-on" onclick="setOutput(4,1)">ON</button>
+    <button class="btn-off" onclick="setOutput(4,0)">OFF</button>
+  </li>
+</ul>
+
+</body>
+</html>
